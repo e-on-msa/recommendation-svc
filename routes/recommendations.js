@@ -170,7 +170,7 @@ router.get('/:userId', async (req, res) => {
       ...(debug ? { debug: { userAge: age, stage, ...meta } } : {}),
     });
   } catch (err) {
-    console.error('❌ 추천 오류:', err);
+    console.error('추천 오류:', err);
     return res.status(500).json({ message: '추천 실패', dev: err.message });
   }
 });
@@ -202,7 +202,7 @@ router.get('/me/self', async (req, res) => {
       ...(debug ? { debug: { userAge: age, stage, ...meta } } : {}),
     });
   } catch (err) {
-    console.error('❌ 추천 오류(me):', err);
+    console.error('추천 오류(me):', err);
     return res.status(500).json({ message: '추천 실패', dev: err.message });
   }
 });

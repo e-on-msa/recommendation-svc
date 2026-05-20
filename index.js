@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { startConsumer } = require('./messaging/consumer');
+const { sequelize } = require('./models');
 
 const aiRecommendRoutes = require('./routes/aiRecommendRoutes');
 const timeRecommendations = require('./routes/timeRecommendations');
@@ -23,5 +24,7 @@ app.use('/recommendations', recommendations);
 
 app.listen(PORT, async () => {
   console.log(`Recommendation Service running on :${PORT}`);
+  await sequelize.sync({ alter: true });
+  console.log('테이블 동기화 완료');
   await startConsumer();
 });

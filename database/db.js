@@ -19,9 +19,9 @@ const rawConnection = mysql.createConnection({
 });
 rawConnection.connect(err => {
   if (err) {
-    console.error('❌ MySQL(raw) 연결 실패:', err.message);
+    console.error('MySQL(raw) 연결 실패:', err.message);
   } else {
-    console.log('✅ MySQL(raw) 연결 성공!');
+    console.log('MySQL(raw) 연결 성공!');
   }
 });
 
@@ -35,9 +35,9 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
 (async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Sequelize 연결 성공!');
+    console.log('Sequelize 연결 성공!');
   } catch (err) {
-    console.error('❌ Sequelize 연결 실패:', err.message);
+    console.error('Sequelize 연결 실패:', err.message);
   }
 })();
 
