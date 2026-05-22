@@ -1,4 +1,10 @@
 // routes/recommendations.js
+//
+// [MSA 전환 예정] 이 라우터의 SQL 쿼리는 challenge-svc / user-svc 의 테이블을
+// 직접 조회하고 있어 MSA 원칙에 위반됩니다.
+// 추후 challenge-svc, user-svc 의 /internal API 호출로 교체 예정입니다.
+// 관련 이슈: https://github.com/<org>/recommendation-svc/issues
+//
 const express = require('express');
 const router = express.Router();
 const { sequelize } = require('../database/db');

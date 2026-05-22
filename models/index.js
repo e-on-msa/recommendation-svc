@@ -3,6 +3,7 @@ const DataTypes = Sequelize.DataTypes;
 
 const RecommendationDashboard = require('./RecommendationDashboard')(sequelize, DataTypes);
 const RecommendationItem = require('./RecommendationItem')(sequelize, DataTypes);
+const RecommendationCache = require('./RecommendationCache')(sequelize, DataTypes);
 
 RecommendationDashboard.hasMany(RecommendationItem, {
   foreignKey: 'dashboard_id',
@@ -15,4 +16,4 @@ RecommendationItem.belongsTo(RecommendationDashboard, {
   onDelete: 'CASCADE',
 });
 
-module.exports = { sequelize, RecommendationDashboard, RecommendationItem };
+module.exports = { sequelize, RecommendationDashboard, RecommendationItem, RecommendationCache };
