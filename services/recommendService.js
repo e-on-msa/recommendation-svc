@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { Op } = require('sequelize');
+const { Op, literal } = require('sequelize');
 const generateUserSummaryText = require('../utils/generateUserSummary');
 const callEmbeddingRecommendation = require('./embeddingApi');
 const { RecommendationCache } = require('../models');
@@ -77,9 +77,7 @@ exports.updateChallengeCandidate = async (challengeId) => {
   try {
     console.log(`[recommendService] challenge ${challengeId} updated — invalidating affected caches`);
     const affected = await RecommendationCache.findAll({
-      where: {
-        challenge_ids: { [Op.like]: `%${challengeId}%` },
-      },
+      where: literal(`JSON_CONTAINS(challenge_ids, '${Number(challengeId)}')`),
     });
     if (affected.length > 0) {
       await RecommendationCache.destroy({
@@ -97,9 +95,7 @@ exports.removeChallengeCandidate = async (challengeId) => {
   try {
     console.log(`[recommendService] removing challenge ${challengeId} from all caches`);
     const affected = await RecommendationCache.findAll({
-      where: {
-        challenge_ids: { [Op.like]: `%${challengeId}%` },
-      },
+      where: literal(`JSON_CONTAINS(challenge_ids, '${Number(challengeId)}')`),
     });
     for (const row of affected) {
       const filtered = (row.challenge_ids || []).filter(
