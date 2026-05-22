@@ -149,7 +149,77 @@ async function runRecommend({ userId, age, limit, offset, debug }) {
   };
 }
 
-/** GET /api/recommendations/:userId */
+/**
+ * @swagger
+ * /api/recommendations/{userId}:
+ *   get:
+ *     summary: 점수 기반 챌린지 추천 (특정 유저)
+ *     description: |
+ *       관심사·진로 매칭 + 참여자 수 + 평균 별점을 종합 점수로 계산하여 추천합니다.
+ *       매칭 결과가 없을 경우 나이 필터 완화 → 전체 인기순으로 단계적 폴백합니다.
+ *     tags: [점수 기반 추천]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *         description: 추천 대상 유저 ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 50
+ *         description: 반환 개수 (최대 50)
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: 페이지 오프셋
+ *       - in: query
+ *         name: debug
+ *         schema:
+ *           type: string
+ *           enum: ['0', '1']
+ *           default: '0'
+ *         description: "1이면 매칭 통계 포함 (개발용)"
+ *     responses:
+ *       200:
+ *         description: 추천 챌린지 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ScoredChallenge'
+ *       400:
+ *         description: 유효하지 않은 userId
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: 유저 없음
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/:userId', async (req, res) => {
   const userId = Number(req.params.userId);
   const limit = Math.min(Number(req.query.limit) || 20, 50);
@@ -181,7 +251,60 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-/** (선택) GET /api/recommendations/me  — 로그인 유저로 바로 호출 */
+/**
+ * @swagger
+ * /api/recommendations/me/self:
+ *   get:
+ *     summary: 점수 기반 챌린지 추천 (로그인 유저 본인)
+ *     description: X-User-Id 헤더의 유저 ID로 본인 추천 결과를 반환합니다.
+ *     tags: [점수 기반 추천]
+ *     security:
+ *       - UserIdHeader: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *           maximum: 50
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *       - in: query
+ *         name: debug
+ *         schema:
+ *           type: string
+ *           enum: ['0', '1']
+ *           default: '0'
+ *     responses:
+ *       200:
+ *         description: 추천 챌린지 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ScoredChallenge'
+ *       401:
+ *         description: 로그인 필요
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get('/me/self', async (req, res) => {
   try {
     const userId =
