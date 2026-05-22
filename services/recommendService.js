@@ -9,10 +9,10 @@ const COMMUNITY_SVC = process.env.COMMUNITY_SERVICE_URL;
 exports.getRecommendedChallenges = async (userId) => {
   // 각 서비스에서 병렬로 데이터 수집
   const [challengeActivity, preferences, communityActivity, activeChallenges] = await Promise.all([
-    axios.get(`${CHALLENGE_SVC}/participations/user/${userId}`).then(r => r.data),
-    axios.get(`${USER_SVC}/preferences/user/${userId}`).then(r => r.data),
-    axios.get(`${COMMUNITY_SVC}/activities/user/${userId}`).then(r => r.data),
-    axios.get(`${CHALLENGE_SVC}/challenges/active-with-categories`).then(r => r.data),
+    axios.get(`${CHALLENGE_SVC}/internal/participations/user/${userId}`).then(r => r.data),
+    axios.get(`${USER_SVC}/internal/preferences/user/${userId}`).then(r => r.data),
+    axios.get(`${COMMUNITY_SVC}/internal/activities/user/${userId}`).then(r => r.data),
+    axios.get(`${CHALLENGE_SVC}/internal/challenges/active-with-categories`).then(r => r.data),
   ]);
 
   const { participated = [], created = [] } = challengeActivity;
