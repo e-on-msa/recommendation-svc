@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/timeRecommendationController');
+const { isLoggedIn } = require('../middleware/auth');
 
 /**
  * @swagger
@@ -115,7 +116,7 @@ router.get('/', ctrl.getRecommendationsByTime);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/admin', ctrl.createItem);
+router.post('/admin', isLoggedIn, ctrl.createItem);
 
 /**
  * @swagger
@@ -184,7 +185,7 @@ router.post('/admin', ctrl.createItem);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/admin/:itemId', ctrl.updateItem);
-router.delete('/admin/:itemId', ctrl.deleteItem);
+router.put('/admin/:itemId', isLoggedIn, ctrl.updateItem);
+router.delete('/admin/:itemId', isLoggedIn, ctrl.deleteItem);
 
 module.exports = router;
