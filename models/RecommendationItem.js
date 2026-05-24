@@ -46,11 +46,8 @@ module.exports = (sequelize, DataTypes) => {
       as: 'dashboard',
       onDelete: 'CASCADE',
     });
-    RecommendationItem.belongsTo(models.Challenge, {
-      foreignKey: 'challenge_id',
-      as: 'challenge',
-      onDelete: 'SET NULL',
-    });
+    // challenge_id는 Challenge 서비스 DB의 PK를 참조하는 application-level 참조.
+    // MSA 구조상 서비스 간 Sequelize 연관관계는 설정 불가.
   };
 
   return RecommendationItem;
