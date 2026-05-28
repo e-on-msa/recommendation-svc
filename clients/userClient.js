@@ -8,3 +8,10 @@ exports.getPreferences = async (userId) => {
   const { data } = await axios.get(`${USER_SVC}/internal/preferences/user/${userId}`);
   return data;
 };
+
+// GET /internal/users/ids
+// 응답 예시: [1, 2, 3, ...]
+exports.getAllUserIds = async () => {
+  const { data } = await axios.get(`${USER_SVC}/internal/users/ids`);
+  return data;
+};
