@@ -39,15 +39,11 @@ module.exports = {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
+      // challenge_id는 Challenge 서비스 DB의 PK를 참조하지만,
+      // MSA 구조에서 서비스 간 DB FK는 불가 → application-level 참조로만 관리
       challenge_id: {
         type: Sequelize.BIGINT,
         allowNull: true,
-        references: {
-          model: 'Challenge',
-          key: 'challenge_id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
       },
       image_url: {
         type: Sequelize.STRING,

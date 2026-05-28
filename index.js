@@ -2,12 +2,16 @@ require('dotenv').config();
 const app = require('./app');
 const { sequelize } = require('./models');
 const { startConsumer } = require('./messaging/consumer');
+const redis = require('./config/redis');
+const { startBatchScheduler } = require('./scheduler/recommendationBatch');
 
 const PORT = process.env.PORT || 8085;
 
 app.listen(PORT, async () => {
   console.log(`Recommendation Service running on :${PORT}`);
+  await redis.connect();
   await sequelize.sync({ alter: true });
   console.log('테이블 동기화 완료');
   await startConsumer();
+  startBatchScheduler();
 });

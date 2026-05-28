@@ -4,23 +4,23 @@ let channel = null;
 
 async function connect() {
   try {
-    const connection = await amqp.connect(process.env.RABBITMQ_URL);
+    const connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://localhost');
     channel = await connection.createChannel();
+    console.log('RabbitMQ 연결 성공');
 
     connection.on('error', (err) => {
-      console.error('[RabbitMQ] connection error:', err.message);
-      setTimeout(connect, 5000);
+      console.error('[RabbitMQ] 연결 에러:', err.message);
     });
 
     connection.on('close', () => {
-      console.warn('[RabbitMQ] connection closed. reconnecting...');
+      console.warn('RabbitMQ 연결 끊김. 5초 후 재연결 시도...');
+      channel = null;
       setTimeout(connect, 5000);
     });
 
-    console.log('[RabbitMQ] connected');
     return channel;
   } catch (err) {
-    console.error('[RabbitMQ] failed to connect:', err.message);
+    console.warn('RabbitMQ 연결 실패 (나중에 Docker로 띄울 예정):', err.message);
     setTimeout(connect, 5000);
   }
 }
@@ -29,4 +29,24 @@ function getChannel() {
   return channel;
 }
 
-module.exports = { connect, getChannel };
+async function publish(exchange, routingKey, payload) {
+  if (!channel) {
+    console.warn(`[RabbitMQ] channel 없음. 이벤트 발행 스킵: ${routingKey}`);
+    return;
+  }
+
+  try {
+    await channel.assertExchange(exchange, 'topic', { durable: true });
+    channel.publish(
+      exchange,
+      routingKey,
+      Buffer.from(JSON.stringify(payload)),
+      { persistent: true }
+    );
+    console.log(`[RabbitMQ] 이벤트 발행: ${routingKey}`, payload);
+  } catch (err) {
+    console.error(`[RabbitMQ] 이벤트 발행 실패: ${routingKey}`, err.message);
+  }
+}
+
+module.exports = { connect, getChannel, publish };
