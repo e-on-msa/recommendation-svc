@@ -1,44 +1,44 @@
 const recommendService = require('../../services/recommendService');
 
 // challenge.created
-// payload: { challengeId, status }
+// payload: { challenge_id, status }
 // status가 APPROVED(지자체)일 때만 후보 편입, PENDING이면 무시
-exports.onCreated = async ({ challengeId, status }) => {
-  console.log(`[challengeHandler] created → challengeId: ${challengeId}, status: ${status}`);
+exports.onCreated = async ({ challenge_id, status }) => {
+  console.log(`[challengeHandler] created → challengeId: ${challenge_id}, status: ${status}`);
   if (status === 'APPROVED') {
-    await recommendService.addChallengeCandidate(challengeId);
+    await recommendService.addChallengeCandidate(challenge_id);
   }
 };
 
 // challenge.approved
-// payload: { challengeId }
-exports.onApproved = async ({ challengeId }) => {
-  console.log(`[challengeHandler] approved → challengeId: ${challengeId}`);
-  await recommendService.addChallengeCandidate(challengeId);
+// payload: { challenge_id }
+exports.onApproved = async ({ challenge_id }) => {
+  console.log(`[challengeHandler] approved → challengeId: ${challenge_id}`);
+  await recommendService.addChallengeCandidate(challenge_id);
 };
 
 // challenge.updated
-// payload: { challengeId }
-exports.onUpdated = async ({ challengeId }) => {
-  console.log(`[challengeHandler] updated → challengeId: ${challengeId}`);
-  await recommendService.updateChallengeCandidate(challengeId);
+// payload: { challenge_id }
+exports.onUpdated = async ({ challenge_id }) => {
+  console.log(`[challengeHandler] updated → challengeId: ${challenge_id}`);
+  await recommendService.updateChallengeCandidate(challenge_id);
 };
 
-// challenge.state.changed
-// payload: { challengeId, state }
+// challenge.state.updated
+// payload: { challenge_id, state }
 // CLOSED / CANCELLED → 후보에서 제외
-exports.onStateChanged = async ({ challengeId, state }) => {
-  console.log(`[challengeHandler] state changed → challengeId: ${challengeId}, state: ${state}`);
+exports.onStateUpdated = async ({ challenge_id, state }) => {
+  console.log(`[challengeHandler] state changed → challengeId: ${challenge_id}, current_state: ${current_state}`);
   if (state === 'CLOSED' || state === 'CANCELLED') {
-    await recommendService.removeChallengeCandidate(challengeId);
+    await recommendService.removeChallengeCandidate(challenge_id);
   } else if (state === 'ACTIVE') {
-    await recommendService.addChallengeCandidate(challengeId);
+    await recommendService.addChallengeCandidate(challenge_id);
   }
 };
 
 // challenge.deleted
-// payload: { challengeId }
-exports.onDeleted = async ({ challengeId }) => {
-  console.log(`[challengeHandler] deleted → challengeId: ${challengeId}`);
-  await recommendService.removeChallengeCandidate(challengeId);
+// payload: { challenge_id }
+exports.onDeleted = async ({ challenge_id }) => {
+  console.log(`[challengeHandler] deleted → challengeId: ${challenge_id}`);
+  await recommendService.removeChallengeCandidate(challenge_id);
 };

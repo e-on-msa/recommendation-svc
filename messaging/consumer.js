@@ -15,7 +15,7 @@ const SUBSCRIPTIONS = [
   { routingKey: 'challenge.created',       handler: challengeHandler.onCreated },
   { routingKey: 'challenge.approved',      handler: challengeHandler.onApproved },
   { routingKey: 'challenge.updated',       handler: challengeHandler.onUpdated },
-  { routingKey: 'challenge.state.changed', handler: challengeHandler.onStateChanged },
+  { routingKey: 'challenge.state.updated', handler: challengeHandler.onStateUpdated },
   { routingKey: 'challenge.deleted',       handler: challengeHandler.onDeleted },
 
   // Community Service 이벤트
@@ -36,8 +36,8 @@ async function startConsumer() {
     channel.consume(queue, async (msg) => {
       if (!msg) return;
       try {
-        const data = JSON.parse(msg.content.toString());
-        await handler(data);
+        const event = JSON.parse(msg.content.toString());
+        await handler(event.payload ?? event);
         channel.ack(msg);
       } catch (err) {
         console.error(`[RabbitMQ] error handling ${routingKey}:`, err.message);
