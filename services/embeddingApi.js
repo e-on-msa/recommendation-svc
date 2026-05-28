@@ -2,9 +2,9 @@ const axios = require('axios');
 
 module.exports = async function callEmbeddingRecommendation(userText, challengeTexts) {
   try {
-    const base = process.env.AI_SERVICE_URL || `http://${process.env.HOST}:5000`;
+    const base = process.env.AI_SERVICE_URL;
     const response = await axios.post(
-      `${base}/recommend`,
+      `${base}/internal/recommend`,
       {
         user_text: userText,
         challenges: challengeTexts,
