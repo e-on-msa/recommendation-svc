@@ -1,4 +1,4 @@
-도require('dotenv').config();
+require('dotenv').config();
 const amqp = require('amqplib');
 
 const EXCHANGE = 'eon.events';
