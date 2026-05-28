@@ -4,12 +4,45 @@ const generateUserSummaryText = require('../utils/generateUserSummary');
 const callEmbeddingRecommendation = require('./embeddingApi');
 const { RecommendationCache } = require('../models');
 
-const CHALLENGE_SVC = process.env.CHALLENGE_SERVICE_URL;
-const USER_SVC     = process.env.USER_SERVICE_URL;
-const COMMUNITY_SVC = process.env.COMMUNITY_SERVICE_URL;
+const CHALLENGE_SVC  = process.env.CHALLENGE_SERVICE_URL;
+const USER_SVC       = process.env.USER_SERVICE_URL;
+const COMMUNITY_SVC  = process.env.COMMUNITY_SERVICE_URL;
 
+// 공통: 활성 챌린지 텍스트 변환
+function toChallengeTexts(challenges) {
+  return challenges.map(ch => ({
+    id: ch.challenge_id,
+    text: `챌린지 제목: ${ch.title}. 설명: ${ch.description}. 관심분야: ${(ch.interests || []).join(', ')}. 진로: ${(ch.visions || []).join(', ')}`,
+  }));
+}
+
+// 공통: 추천 ID 순서대로 정렬
+function sortByRecommendedOrder(challenges, recommendedIds) {
+  const idOrder = new Map(recommendedIds.map((id, idx) => [String(id), idx]));
+  return challenges
+    .filter(c => recommendedIds.includes(c.challenge_id))
+    .sort((a, b) => idOrder.get(String(a.challenge_id)) - idOrder.get(String(b.challenge_id)));
+}
+
+// GET /api/recommend — 관심사·진로 기반 AI 임베딩 추천
 exports.getRecommendedChallenges = async (userId) => {
-  // 각 서비스에서 병렬로 데이터 수집
+  const [preferences, activeChallenges] = await Promise.all([
+    axios.get(`${USER_SVC}/internal/preferences/user/${userId}`).then(r => r.data),
+    axios.get(`${CHALLENGE_SVC}/internal/challenges/active-with-categories`).then(r => r.data),
+  ]);
+
+  const { interests = [], visions = [] } = preferences;
+  const interest = interests.length ? interests.join(', ') : '정보 없음';
+  const vision   = visions.length   ? visions.join(', ')   : '정보 없음';
+
+  const userText = `관심분야: ${interest}. 진로희망: ${vision}.`;
+
+  const recommendedIds = await callEmbeddingRecommendation(userText, toChallengeTexts(activeChallenges));
+  return sortByRecommendedOrder(activeChallenges, recommendedIds);
+};
+
+// POST /api/recommend/history — 활동이력 기반 AI 임베딩 추천
+exports.recommendByHistory = async (userId) => {
   const [challengeActivity, preferences, communityActivity, activeChallenges] = await Promise.all([
     axios.get(`${CHALLENGE_SVC}/internal/participations/user/${userId}`).then(r => r.data),
     axios.get(`${USER_SVC}/internal/preferences/user/${userId}`).then(r => r.data),
@@ -25,26 +58,11 @@ exports.getRecommendedChallenges = async (userId) => {
   const vision   = visions.length   ? visions.join(', ')   : '정보 없음';
 
   const userText = generateUserSummaryText({
-    participated,
-    created,
-    posts,
-    comments,
-    boardRequests,
-    interest,
-    vision,
+    participated, created, posts, comments, boardRequests, interest, vision,
   });
 
-  const challengeTexts = activeChallenges.map(ch => ({
-    id: ch.challenge_id,
-    text: `챌린지 제목: ${ch.title}. 설명: ${ch.description}. 관심분야: ${(ch.interests || []).join(', ')}. 진로: ${(ch.visions || []).join(', ')}`,
-  }));
-
-  const recommendedIds = await callEmbeddingRecommendation(userText, challengeTexts);
-
-  const idOrder = new Map(recommendedIds.map((id, idx) => [String(id), idx]));
-  return activeChallenges
-    .filter(c => recommendedIds.includes(c.challenge_id))
-    .sort((a, b) => idOrder.get(String(a.challenge_id)) - idOrder.get(String(b.challenge_id)));
+  const recommendedIds = await callEmbeddingRecommendation(userText, toChallengeTexts(activeChallenges));
+  return sortByRecommendedOrder(activeChallenges, recommendedIds);
 };
 
 // RabbitMQ 이벤트 핸들러에서 호출하는 함수들
@@ -53,7 +71,7 @@ exports.getRecommendedChallenges = async (userId) => {
 exports.recalculateForUser = async (userId) => {
   try {
     console.log(`[recommendService] recalculate triggered for userId: ${userId}`);
-    const challenges = await exports.getRecommendedChallenges(userId);
+    const challenges = await exports.recommendByHistory(userId);
     const challengeIds = challenges.map(c => c.challenge_id);
     await RecommendationCache.upsert({
       user_id: userId,
@@ -98,9 +116,7 @@ exports.removeChallengeCandidate = async (challengeId) => {
       where: literal(`JSON_CONTAINS(challenge_ids, '${Number(challengeId)}')`),
     });
     for (const row of affected) {
-      const filtered = (row.challenge_ids || []).filter(
-        id => String(id) !== String(challengeId)
-      );
+      const filtered = (row.challenge_ids || []).filter(id => String(id) !== String(challengeId));
       await row.update({ challenge_ids: filtered, updated_at: new Date() });
     }
     console.log(`[recommendService] removed challenge ${challengeId} from ${affected.length} cache(s)`);
