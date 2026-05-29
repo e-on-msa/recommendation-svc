@@ -9,19 +9,22 @@ const DB_USER     = process.env.DB_USER     || 'eon';
 const DB_PASSWORD = process.env.DB_PASSWORD || 'eon';
 const DB_NAME     = process.env.DB_NAME     || 'eon_db';
 
-// 1) Raw MySQL 커넥션
-const rawConnection = mysql.createConnection({
-  host:     DB_HOST,
-  port:     DB_PORT,
-  user:     DB_USER,
-  password: DB_PASSWORD,
-  database: DB_NAME
+// 1) Raw MySQL 풀 (자동 재연결)
+const rawConnection = mysql.createPool({
+  host:              DB_HOST,
+  port:              DB_PORT,
+  user:              DB_USER,
+  password:          DB_PASSWORD,
+  database:          DB_NAME,
+  waitForConnections: true,
+  connectionLimit:   10,
 });
-rawConnection.connect(err => {
+rawConnection.getConnection((err, conn) => {
   if (err) {
     console.error('MySQL(raw) 연결 실패:', err.message);
   } else {
     console.log('MySQL(raw) 연결 성공!');
+    conn.release();
   }
 });
 
