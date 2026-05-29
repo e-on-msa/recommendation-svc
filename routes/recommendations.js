@@ -128,7 +128,7 @@ router.get('/me/self', isLoggedIn, async (req, res) => {
  *       500:
  *         description: 서버 오류
  */
-router.get('/:userId', async (req, res) => {
+router.get('/:userId', isLoggedIn, async (req, res) => {
   const userId = Number(req.params.userId);
   const limit  = Math.min(Number(req.query.limit) || 20, 50);
   const offset = Number(req.query.offset) || 0;
