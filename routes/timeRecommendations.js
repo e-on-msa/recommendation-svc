@@ -5,7 +5,7 @@ const { isLoggedIn } = require('../middleware/auth');
 
 /**
  * @swagger
- * /api/time-recommendations:
+ * /api/recommendations/time:
  *   get:
  *     summary: 시간·학교급 기반 챌린지 추천
  *     description: 월(month)과 학교급(schoolType)을 기준으로 편집자가 등록한 추천 챌린지를 반환합니다.

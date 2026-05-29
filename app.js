@@ -19,8 +19,10 @@ app.use(morgan('dev'));
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use('/api/recommend', aiRecommendRoutes);
-app.use('/api/time-recommendations', timeRecommendations);
+// /api/recommendations/recommend 가 /:userId 보다 먼저 등록되어야 함
+// /api/recommendations/recommend, /api/recommendations/time 가 /:userId 보다 먼저 등록되어야 함
+app.use('/api/recommendations/recommend', aiRecommendRoutes);
+app.use('/api/recommendations/time', timeRecommendations);
 app.use('/api/recommendations', recommendations);
 
 module.exports = app;

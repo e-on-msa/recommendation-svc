@@ -5,7 +5,7 @@ const { isLoggedIn } = require('../middleware/auth');
 
 /**
  * @swagger
- * /api/recommend:
+ * /api/recommendations/recommend:
  *   get:
  *     summary: AI 임베딩 기반 챌린지 추천
  *     description: 유저의 관심사·진로·활동이력을 임베딩하여 유사도 높은 챌린지를 반환합니다.
@@ -38,7 +38,7 @@ router.get('/', isLoggedIn, recommendController.getRecommendedChallenges);
 
 /**
  * @swagger
- * /api/recommend/history:
+ * /api/recommendations/recommend/history:
  *   post:
  *     summary: 활동이력 기반 챌린지 추천
  *     description: 유저의 참여·생성 이력과 커뮤니티 활동을 분석하여 챌린지를 추천합니다.
