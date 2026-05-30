@@ -35,7 +35,7 @@ function sortByRecommendedOrder(challenges, recommendedIds) {
 exports.getRecommendedChallenges = async (userId) => {
   const [preferences, activeChallenges] = await Promise.all([
     axios.get(`${USER_SVC}/internal/preferences/user/${userId}`).then(r => r.data),
-    axios.get(`${CHALLENGE_SVC}/internal/challenges/active-with-categories`).then(r => r.data),
+    axios.get(`${CHALLENGE_SVC}/internal/challenges/active-with-categories`).then(r => r.data.challenges || []),
   ]);
 
   const { interests = [], visions = [] } = preferences;
@@ -61,7 +61,7 @@ exports.recommendByHistory = async (userId) => {
     axios.get(`${CHALLENGE_SVC}/internal/participations/user/${userId}`).then(r => r.data),
     axios.get(`${USER_SVC}/internal/preferences/user/${userId}`).then(r => r.data),
     axios.get(`${COMMUNITY_SVC}/internal/activities/user/${userId}`).then(r => r.data),
-    axios.get(`${CHALLENGE_SVC}/internal/challenges/active-with-categories`).then(r => r.data),
+    axios.get(`${CHALLENGE_SVC}/internal/challenges/active-with-categories`).then(r => r.data.challenges || []),
   ]);
 
   const { participated = [], created = [] } = challengeActivity;
