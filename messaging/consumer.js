@@ -22,10 +22,11 @@ const SUBSCRIPTIONS = [
   { routingKey: 'community.post.created',  handler: communityHandler.onPostCreated },
 ];
 
-async function startConsumer() {
-  const channel = await connect();
-  if (!channel) return;
-
+/**
+ * 큐 선언 · 바인딩 · consume 등록만 담당하는 함수
+ * connect()에 콜백으로 전달되어, 연결이 성공할 때마다 실행된다.
+ */
+async function setupQueues(channel) {
   await channel.assertExchange(EXCHANGE, 'topic', { durable: true });
 
   for (const { routingKey, handler } of SUBSCRIPTIONS) {
@@ -47,6 +48,17 @@ async function startConsumer() {
 
     console.log(`[RabbitMQ] subscribed: ${routingKey}`);
   }
+
+  console.log('[RabbitMQ] 큐 등록 완료');
 }
 
-module.exports = { startConsumer };
+/**
+ * 연결을 시도하고, 연결 성공 시마다 setupQueues가 실행되도록 콜백으로 전달한다.
+ * 최초 기동 시 RabbitMQ가 아직 뜨지 않았거나 운영 중 연결이 끊겨도
+ * 재연결이 성공하는 시점에 큐가 다시 등록된다.
+ */
+async function startConsumer() {
+  await connect(setupQueues);
+}
+
+module.exports = { startConsumer, setupQueues };
