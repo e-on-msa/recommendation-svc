@@ -2,13 +2,16 @@ const amqp = require('amqplib');
 
 let channel = null;
 
-async function connect(onConnected) {        // ① 파라미터 추가
+async function connect(onConnected) {
   try {
     const connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://localhost');
     channel = await connection.createChannel();
     console.log('RabbitMQ 연결 성공');
 
-    if (onConnected) await onConnected(channel);   // ② 연결되면 콜백 실행
+    // 연결이 성공할 때마다 큐 등록 실행
+    if (onConnected) {
+      await onConnected(channel);
+    }
 
     connection.on('error', (err) => {
       console.error('[RabbitMQ] 연결 에러:', err.message);
@@ -17,16 +20,15 @@ async function connect(onConnected) {        // ① 파라미터 추가
     connection.on('close', () => {
       console.warn('RabbitMQ 연결 끊김. 5초 후 재연결 시도...');
       channel = null;
-      setTimeout(() => connect(onConnected), 5000);   // ③ 콜백 넘기며 재연결
+      setTimeout(() => connect(onConnected), 5000);
     });
 
     return channel;
   } catch (err) {
-    console.warn('RabbitMQ 연결 실패:', err.message);
-    setTimeout(() => connect(onConnected), 5000);     // ④ 여기도 콜백 유지
+    console.warn('RabbitMQ 연결 실패. 5초 후 재시도:', err.message);
+    setTimeout(() => connect(onConnected), 5000);
   }
 }
-
 
 function getChannel() {
   return channel;
